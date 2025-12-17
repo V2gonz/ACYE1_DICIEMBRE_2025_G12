@@ -85,8 +85,8 @@ function App() {
       setGraficaLineas({
         labels: resHist.data.temperaturas.map(d => d.fecha),
         datasets: [
-          { label: 'Temperatura (°C)', data: resHist.data.temperaturas.map(d => d.valor), borderColor: 'red', backgroundColor: 'rgba(255,0,0,0.5)' },
-          { label: 'Humedad (%)', data: resHist.data.humedades.map(d => d.valor), borderColor: 'blue', backgroundColor: 'rgba(0,0,255,0.5)' }
+          { label: 'Temperatura (°C)', data: resHist.data.temperaturas.map(d => d.valor), borderColor: 'rgba(206, 53, 53, 0.88)', backgroundColor: 'rgba(206, 53, 53, 0.88)' },
+          { label: 'Humedad (%)', data: resHist.data.humedades.map(d => d.valor), borderColor: 'rgba(80, 169, 221, 0.56)' , backgroundColor: 'rgba(80, 169, 221, 0.56)' }
         ]
       });
 
@@ -98,7 +98,7 @@ function App() {
       const barVals = Object.values(resEv.data.grafica_barras);
       setGraficaBarras({
         labels: barKeys,
-        datasets: [{ label: 'Cantidad de Eventos', data: barVals, backgroundColor: 'orange' }]
+        datasets: [{ label: 'Cantidad de Eventos', data: barVals, backgroundColor: 'rgba(192, 78, 103, 0.84)' }]
       });
 
       // 3. Estadísticas
@@ -124,7 +124,7 @@ function App() {
   // --- FILTRADO DE TABLA ---
   const eventosFiltrados = tablaEventos.filter(ev => {
     return ev.tipo.toLowerCase().includes(filtroTipo.toLowerCase()) &&
-           ev.fecha.includes(filtroFecha);
+          ev.fecha.includes(filtroFecha);
   });
 
   // --- VISTA LOGIN ---
@@ -132,7 +132,7 @@ function App() {
     return (
       <div className="login-container">
         <form className="login-form" onSubmit={handleLogin}>
-          <h2>🔐 Acceso Seguro FIUSAC</h2>
+          <h2> ➜]    Acceso FIUSAC</h2>
           <input type="text" placeholder="Usuario" value={user} onChange={e => setUser(e.target.value)} />
           <input type="password" placeholder="Contraseña" value={pass} onChange={e => setPass(e.target.value)} />
           <button type="submit">INGRESAR</button>
@@ -146,37 +146,37 @@ function App() {
   return (
     <div className="App">
       <header>
-        <h1>🏭 FIUSAC DataCenter Monitor</h1>
-        <button onClick={() => setIsLoggedIn(false)} className="btn-logout">Salir</button>
+        <h1>🖥️ FIUSAC DataCenter Monitor ˗ˏˋ ♡ ˎˊ˗</h1>
+        <button onClick={() => setIsLoggedIn(false)} className="btn-logout">Salir ╰┈➤</button>
       </header>
 
       <div className="dashboard">
         {/* SECCIÓN 1: ESTADO TIEMPO REAL */}
         <div className="section real-time">
-          <h2>📡 Estado Actual</h2>
+          <h2>📡 Estado Actual 🤖</h2>
           <div className="cards-row">
             <div className="card-stat">
               <h3>{estado.temperatura}°C</h3>
-              <p>Temperatura</p>
+              <p>🌡️ Temperatura</p>
             </div>
             <div className="card-stat">
               <h3>{estado.humedad}%</h3>
-              <p>Humedad</p>
+              <p>💧 Humedad</p>
             </div>
             <div className={`card-stat ${estado.puerta === 'ABIERTA' ? 'danger' : ''}`}>
               <h3>{estado.puerta}</h3>
-              <p>Puerta</p>
+              <p>🚪Puerta</p>
             </div>
             <div className="card-stat">
               <h3>{estado.mantenimiento ? 'MANTENIMIENTO' : 'NORMAL'}</h3>
-              <p>Sistema</p>
+              <p>📟 Sistema</p>
             </div>
           </div>
         </div>
 
         {/* SECCIÓN 3: ESTADÍSTICAS DEL DÍA */}
         <div className="section stats">
-          <h2>📊 Estadísticas del Día</h2>
+          <h2>📶 Estadísticas del Día</h2>
           <div className="cards-row mini">
             <div className="mini-card">🌡️ Máx: {estadisticas.max_temp}°C</div>
             <div className="mini-card">❄️ Mín: {estadisticas.min_temp}°C</div>
@@ -193,14 +193,14 @@ function App() {
             <Line data={graficaLineas} />
           </div>
           <div className="graph-box">
-            <h3>Eventos por Tipo</h3>
+            <h3>🖥 Eventos por Tipo</h3>
             <Bar data={graficaBarras} />
           </div>
         </div>
 
         {/* SECCIÓN 2.1: TABLA FILTRABLE */}
         <div className="section table-box">
-          <h3>📋 Registro de Eventos (Últimos 50)</h3>
+          <h3>📑 Registro de Eventos (Últimos 50)</h3>
           <div className="filters">
             <input placeholder="Filtrar por Tipo..." value={filtroTipo} onChange={e => setFiltroTipo(e.target.value)} />
             <input placeholder="Filtrar por Fecha (2025-12...)" value={filtroFecha} onChange={e => setFiltroFecha(e.target.value)} />
@@ -227,11 +227,11 @@ function App() {
           <button className="btn green" onClick={() => enviarComando('ABRIR')}>Abrir Puerta</button>
           <button className="btn red" onClick={() => enviarComando('CERRAR')}>Cerrar Puerta</button>
           <div className="divider"></div>
-          <button className="btn blue" onClick={() => enviarComando('FAN_ON')}>Fan ON</button>
-          <button className="btn blue" onClick={() => enviarComando('FAN_OFF')}>Fan OFF</button>
+          <button className="btn blue" onClick={() => enviarComando('FAN_ON')}>Fan ON 𒅒</button>
+          <button className="btn blue" onClick={() => enviarComando('FAN_OFF')}>Fan OFF【⏻】</button>
           <div className="divider"></div>
-          <button className="btn yellow" onClick={() => enviarComando('MANT_ON')}>Mantenimiento ON</button>
-          <button className="btn gray" onClick={() => enviarComando('MANT_OFF')}>Mantenimiento OFF</button>
+          <button className="btn yellow" onClick={() => enviarComando('MANT_ON')}>Mantenimiento ON 🛠</button>
+          <button className="btn gray" onClick={() => enviarComando('MANT_OFF')}>Mantenimiento OFF ⚡</button>
         </div>
       </div>
     </div>
