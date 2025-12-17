@@ -15,24 +15,47 @@ import {
 import { Line, Bar } from 'react-chartjs-2';
 import './App.css';
 
-// Registro de componentes ChartJS
+// ============================
+// REGISTRO DE COMPONENTES CHART.JS
+// ============================
+// Chart.js requiere registrar explícitamente los módulos que se utilizarán.
+// Esto habilita escalas, elementos de línea/barras, títulos, tooltips y leyendas.
+
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend
 );
 
+// ============================
+// CONSTANTES DE CONFIGURACIÓN DEL SISTEMA
+// ============================
+
+// Broker MQTT accesible vía WebSocket (puerto 8083) para telemetría y comandos
 const MQTT_BROKER = 'ws://broker.emqx.io:8083/mqtt';
+// Tópico MQTT donde el dispositivo publica telemetría (estado/lecturas en JSON)
 const TOPICO_TELEMETRIA = 'fiusac/grupo_12/telemetria';
+// Tópico MQTT donde el dashboard publica comandos (control remoto del sistema)
 const TOPICO_COMANDOS = 'fiusac/grupo_12/comandos';
+// URL base del backend Flask (API REST)
 const API_URL = 'http://127.0.0.1:5000/api';
 
+// ============================
+// COMPONENTE PRINCIPAL DE LA APP
+// ============================
+
 function App() {
-  // --- LOGIN STATE ---
+
+  // ============================
+  // ESTADO: LOGIN (CONTROL DE ACCESO)
+  // ============================
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState('');
   const [pass, setPass] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // --- DASHBOARD DATA ---
+  // ============================
+  // ESTADO: LOGIN (CONTROL DE ACCESO)
+  // ============================
+
   const [estado, setEstado] = useState({
     temperatura: '--', humedad: '--', movimiento: 0, 
     puerta: 'CERRADA', mantenimiento: false, ventilador: 'OFF', modo_ventilador: 'AUTO'
@@ -45,17 +68,31 @@ function App() {
     max_temp: 0, min_temp: 0, total_alarmas: 0, total_accesos: 0, promedio_puerta: '0s'
   });
 
-  // --- FILTROS TABLA ---
+  // ============================
+  // ESTADO: FILTROS DE LA TABLA (BUSQUEDA CLIENT-SIDE)
+  // ============================
+
   const [filtroTipo, setFiltroTipo] = useState('');
   const [filtroFecha, setFiltroFecha] = useState('');
 
+  // ============================
+  // ESTADO: CLIENTE MQTT
+  // ============================
+
   const [mqttClient, setMqttClient] = useState(null);
 
-  // 1. INICIAR SISTEMA (SOLO SI ESTÁ LOGUEADO)
+   // ============================
+  // 1) INICIALIZACIÓN DEL SISTEMA (SOLO CON SESIÓN INICIADA)
+  // ============================
+
   useEffect(() => {
     if (!isLoggedIn) return;
 
-    // A. Conexión MQTT
+    // ----------------------------
+    // A) CONEXIÓN MQTT (TIEMPO REAL)
+    // ----------------------------
+
+    // Crear conexión MQTT hacia broker WebSocket
     const client = mqtt.connect(MQTT_BROKER);
     client.on('connect', () => {
       console.log('Conectado a MQTT');
@@ -68,7 +105,10 @@ function App() {
     });
     setMqttClient(client);
 
-    // B. Cargar Datos API Inicial
+    // ----------------------------
+    // B) CARGA INICIAL + REFRESCO POR API
+    // ----------------------------
+
     cargarDatosCompletos();
     const intervalo = setInterval(cargarDatosCompletos, 5000); // Refrescar cada 5s
 
@@ -78,9 +118,17 @@ function App() {
     };
   }, [isLoggedIn]);
 
+  // ============================
+  // FUNCIÓN: CARGA COMPLETA DE DATOS DESDE EL BACKEND
+  // ============================
+
   const cargarDatosCompletos = async () => {
     try {
-      // 1. Gráfica de Líneas (3 Días)
+
+      // ----------------------------
+      // 1) GRÁFICA DE LÍNEAS (HISTÓRICO)
+      // ----------------------------
+
       const resHist = await axios.get(`${API_URL}/historico_sensores`);
       setGraficaLineas({
         labels: resHist.data.temperaturas.map(d => d.fecha),
@@ -90,7 +138,10 @@ function App() {
         ]
       });
 
-      // 2. Tabla y Gráfica de Barras
+      // ----------------------------
+      // 2) TABLA Y GRÁFICA DE BARRAS (EVENTOS)
+      // ----------------------------
+
       const resEv = await axios.get(`${API_URL}/eventos`);
       setTablaEventos(resEv.data.tabla);
       
@@ -101,16 +152,27 @@ function App() {
         datasets: [{ label: 'Cantidad de Eventos', data: barVals, backgroundColor: 'orange' }]
       });
 
-      // 3. Estadísticas
+      // ----------------------------
+      // 3) ESTADÍSTICAS DEL DÍA (KPIs)
+      // ----------------------------
+
       const resStats = await axios.get(`${API_URL}/estadisticas`);
       setEstadisticas(resStats.data);
 
     } catch (error) { console.error("Error API", error); }
   };
 
+  // ============================
+  // FUNCIÓN: ENVÍO DE COMANDOS MQTT
+  // ============================
+
   const enviarComando = (cmd) => {
     if (mqttClient) mqttClient.publish(TOPICO_COMANDOS, cmd);
   };
+
+  // ============================
+  // FUNCIÓN: MANEJO DEL LOGIN (VALIDACIÓN LOCAL)
+  // ============================
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -121,13 +183,19 @@ function App() {
     }
   };
 
-  // --- FILTRADO DE TABLA ---
+  // ============================
+  // FILTRADO DE EVENTOS (CLIENT-SIDE)
+  // ============================
+
   const eventosFiltrados = tablaEventos.filter(ev => {
     return ev.tipo.toLowerCase().includes(filtroTipo.toLowerCase()) &&
            ev.fecha.includes(filtroFecha);
   });
 
-  // --- VISTA LOGIN ---
+  // ============================
+  // VISTA 1: LOGIN (SI NO HAY SESIÓN)
+  // ============================
+
   if (!isLoggedIn) {
     return (
       <div className="login-container">
@@ -142,7 +210,10 @@ function App() {
     );
   }
 
-  // --- VISTA DASHBOARD ---
+  // ============================
+  // VISTA 2: DASHBOARD (SI HAY SESIÓN)
+  // ============================
+  
   return (
     <div className="App">
       <header>
