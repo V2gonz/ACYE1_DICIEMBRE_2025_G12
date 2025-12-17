@@ -3,18 +3,18 @@ body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0
 /* LOGIN */
 .login-container {
   display: flex; justify-content: center; align-items: center; height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1a94b3 0%, #063106 100%);
 }
 .login-form {
   background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   display: flex; flex-direction: column; width: 300px;
 }
 .login-form input { margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-.login-form button { padding: 10px; background: #667eea; color: white; border: none; cursor: pointer; border-radius: 5px; margin-top: 10px;}
+.login-form button { padding: 10px; background: #486b83; color: white; border: none; cursor: pointer; border-radius: 5px; margin-top: 10px;}
 
 /* DASHBOARD */
 .dashboard { padding: 20px; max-width: 1200px; margin: 0 auto; }
-header { background: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+header { background: #676485; color: #dce5ef; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
 .btn-logout { background: #e74c3c; border: none; padding: 8px 15px; color: white; cursor: pointer; border-radius: 4px; }
 
 .section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -36,11 +36,11 @@ h2, h3 { color: #2c3e50; margin-top: 0; }
 /* TABLE */
 .filters input { padding: 8px; margin-right: 10px; border: 1px solid #ccc; border-radius: 4px; }
 table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-th, td { border-bottom: 1px solid #eee; padding: 10px; text-align: left; }
-th { background-color: #f8f9fa; }
+th, td { border-bottom: 1px solid #e9d1b5; padding: 10px; text-align: left; }
+th { background-color: #dfb490; }
 
 /* CONTROLS */
-.control-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: #34495e; padding: 15px; display: flex; justify-content: center; gap: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.2); }
+.control-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: #545881; padding: 15px; display: flex; justify-content: center; gap: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.2); }
 .btn { padding: 10px 20px; border: none; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; }
-.green { background: #27ae60; } .red { background: #c0392b; } .blue { background: #2980b9; } .yellow { background: #f1c40f; color: black; } .gray { background: #7f8c8d; }
-.divider { width: 1px; background: #ffffff55; margin: 0 10px; }
+.green { background: #a5817c; } .red { background: #8f3936; } .blue { background: #daeaf6; color: black; } .yellow { background: #7f9c96; color: white; } .gray { background: #85afb3; }
+.divider { width: 1px; background: #f0f0f0da; margin: 0 10px; }

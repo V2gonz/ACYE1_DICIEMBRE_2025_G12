@@ -15,24 +15,47 @@ import {
 import { Line, Bar } from 'react-chartjs-2';
 import './App.css';
 
-// Registro de componentes ChartJS
+// ============================
+// REGISTRO DE COMPONENTES CHART.JS
+// ============================
+// Chart.js requiere registrar explícitamente los módulos que se utilizarán.
+// Esto habilita escalas, elementos de línea/barras, títulos, tooltips y leyendas.
+
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend
 );
 
+// ============================
+// CONSTANTES DE CONFIGURACIÓN DEL SISTEMA
+// ============================
+
+// Broker MQTT accesible vía WebSocket (puerto 8083) para telemetría y comandos
 const MQTT_BROKER = 'ws://broker.emqx.io:8083/mqtt';
+// Tópico MQTT donde el dispositivo publica telemetría (estado/lecturas en JSON)
 const TOPICO_TELEMETRIA = 'fiusac/grupo_12/telemetria';
+// Tópico MQTT donde el dashboard publica comandos (control remoto del sistema)
 const TOPICO_COMANDOS = 'fiusac/grupo_12/comandos';
+// URL base del backend Flask (API REST)
 const API_URL = 'http://127.0.0.1:5000/api';
 
+// ============================
+// COMPONENTE PRINCIPAL DE LA APP
+// ============================
+
 function App() {
-  // --- LOGIN STATE ---
+
+  // ============================
+  // ESTADO: LOGIN (CONTROL DE ACCESO)
+  // ============================
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState('');
   const [pass, setPass] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // --- DASHBOARD DATA ---
+  // ============================
+  // ESTADO: LOGIN (CONTROL DE ACCESO)
+  // ============================
+
   const [estado, setEstado] = useState({
     temperatura: '--', humedad: '--', movimiento: 0, 
     puerta: 'CERRADA', mantenimiento: false, ventilador: 'OFF', modo_ventilador: 'AUTO'
@@ -45,17 +68,31 @@ function App() {
     max_temp: 0, min_temp: 0, total_alarmas: 0, total_accesos: 0, promedio_puerta: '0s'
   });
 
-  // --- FILTROS TABLA ---
+  // ============================
+  // ESTADO: FILTROS DE LA TABLA (BUSQUEDA CLIENT-SIDE)
+  // ============================
+
   const [filtroTipo, setFiltroTipo] = useState('');
   const [filtroFecha, setFiltroFecha] = useState('');
 
+  // ============================
+  // ESTADO: CLIENTE MQTT
+  // ============================
+
   const [mqttClient, setMqttClient] = useState(null);
 
-  // 1. INICIAR SISTEMA (SOLO SI ESTÁ LOGUEADO)
+   // ============================
+  // 1) INICIALIZACIÓN DEL SISTEMA (SOLO CON SESIÓN INICIADA)
+  // ============================
+
   useEffect(() => {
     if (!isLoggedIn) return;
 
-    // A. Conexión MQTT
+    // ----------------------------
+    // A) CONEXIÓN MQTT (TIEMPO REAL)
+    // ----------------------------
+
+    // Crear conexión MQTT hacia broker WebSocket
     const client = mqtt.connect(MQTT_BROKER);
     client.on('connect', () => {
       console.log('Conectado a MQTT');
@@ -68,7 +105,10 @@ function App() {
     });
     setMqttClient(client);
 
-    // B. Cargar Datos API Inicial
+    // ----------------------------
+    // B) CARGA INICIAL + REFRESCO POR API
+    // ----------------------------
+
     cargarDatosCompletos();
     const intervalo = setInterval(cargarDatosCompletos, 5000); // Refrescar cada 5s
 
@@ -78,19 +118,30 @@ function App() {
     };
   }, [isLoggedIn]);
 
+  // ============================
+  // FUNCIÓN: CARGA COMPLETA DE DATOS DESDE EL BACKEND
+  // ============================
+
   const cargarDatosCompletos = async () => {
     try {
-      // 1. Gráfica de Líneas (3 Días)
+
+      // ----------------------------
+      // 1) GRÁFICA DE LÍNEAS (HISTÓRICO)
+      // ----------------------------
+
       const resHist = await axios.get(`${API_URL}/historico_sensores`);
       setGraficaLineas({
         labels: resHist.data.temperaturas.map(d => d.fecha),
         datasets: [
-          { label: 'Temperatura (°C)', data: resHist.data.temperaturas.map(d => d.valor), borderColor: 'red', backgroundColor: 'rgba(255,0,0,0.5)' },
-          { label: 'Humedad (%)', data: resHist.data.humedades.map(d => d.valor), borderColor: 'blue', backgroundColor: 'rgba(0,0,255,0.5)' }
+          { label: 'Temperatura (°C)', data: resHist.data.temperaturas.map(d => d.valor), borderColor: 'rgba(206, 53, 53, 0.88)', backgroundColor: 'rgba(206, 53, 53, 0.88)' },
+          { label: 'Humedad (%)', data: resHist.data.humedades.map(d => d.valor), borderColor: 'rgba(80, 169, 221, 0.56)' , backgroundColor: 'rgba(80, 169, 221, 0.56)' }
         ]
       });
 
-      // 2. Tabla y Gráfica de Barras
+      // ----------------------------
+      // 2) TABLA Y GRÁFICA DE BARRAS (EVENTOS)
+      // ----------------------------
+
       const resEv = await axios.get(`${API_URL}/eventos`);
       setTablaEventos(resEv.data.tabla);
       
@@ -98,19 +149,30 @@ function App() {
       const barVals = Object.values(resEv.data.grafica_barras);
       setGraficaBarras({
         labels: barKeys,
-        datasets: [{ label: 'Cantidad de Eventos', data: barVals, backgroundColor: 'orange' }]
+        datasets: [{ label: 'Cantidad de Eventos', data: barVals, backgroundColor: 'rgba(192, 78, 103, 0.84)' }]
       });
 
-      // 3. Estadísticas
+      // ----------------------------
+      // 3) ESTADÍSTICAS DEL DÍA (KPIs)
+      // ----------------------------
+
       const resStats = await axios.get(`${API_URL}/estadisticas`);
       setEstadisticas(resStats.data);
 
     } catch (error) { console.error("Error API", error); }
   };
 
+  // ============================
+  // FUNCIÓN: ENVÍO DE COMANDOS MQTT
+  // ============================
+
   const enviarComando = (cmd) => {
     if (mqttClient) mqttClient.publish(TOPICO_COMANDOS, cmd);
   };
+
+  // ============================
+  // FUNCIÓN: MANEJO DEL LOGIN (VALIDACIÓN LOCAL)
+  // ============================
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -121,18 +183,24 @@ function App() {
     }
   };
 
-  // --- FILTRADO DE TABLA ---
+  // ============================
+  // FILTRADO DE EVENTOS (CLIENT-SIDE)
+  // ============================
+
   const eventosFiltrados = tablaEventos.filter(ev => {
     return ev.tipo.toLowerCase().includes(filtroTipo.toLowerCase()) &&
-           ev.fecha.includes(filtroFecha);
+          ev.fecha.includes(filtroFecha);
   });
 
-  // --- VISTA LOGIN ---
+  // ============================
+  // VISTA 1: LOGIN (SI NO HAY SESIÓN)
+  // ============================
+
   if (!isLoggedIn) {
     return (
       <div className="login-container">
         <form className="login-form" onSubmit={handleLogin}>
-          <h2>🔐 Acceso Seguro FIUSAC</h2>
+          <h2> ➜]    Acceso FIUSAC</h2>
           <input type="text" placeholder="Usuario" value={user} onChange={e => setUser(e.target.value)} />
           <input type="password" placeholder="Contraseña" value={pass} onChange={e => setPass(e.target.value)} />
           <button type="submit">INGRESAR</button>
@@ -142,41 +210,44 @@ function App() {
     );
   }
 
-  // --- VISTA DASHBOARD ---
+  // ============================
+  // VISTA 2: DASHBOARD (SI HAY SESIÓN)
+  // ============================
+  
   return (
     <div className="App">
       <header>
-        <h1>🏭 FIUSAC DataCenter Monitor</h1>
-        <button onClick={() => setIsLoggedIn(false)} className="btn-logout">Salir</button>
+        <h1>🖥️ FIUSAC DataCenter Monitor ˗ˏˋ ♡ ˎˊ˗</h1>
+        <button onClick={() => setIsLoggedIn(false)} className="btn-logout">Salir ╰┈➤</button>
       </header>
 
       <div className="dashboard">
         {/* SECCIÓN 1: ESTADO TIEMPO REAL */}
         <div className="section real-time">
-          <h2>📡 Estado Actual</h2>
+          <h2>📡 Estado Actual 🤖</h2>
           <div className="cards-row">
             <div className="card-stat">
               <h3>{estado.temperatura}°C</h3>
-              <p>Temperatura</p>
+              <p>🌡️ Temperatura</p>
             </div>
             <div className="card-stat">
               <h3>{estado.humedad}%</h3>
-              <p>Humedad</p>
+              <p>💧 Humedad</p>
             </div>
             <div className={`card-stat ${estado.puerta === 'ABIERTA' ? 'danger' : ''}`}>
               <h3>{estado.puerta}</h3>
-              <p>Puerta</p>
+              <p>🚪Puerta</p>
             </div>
             <div className="card-stat">
               <h3>{estado.mantenimiento ? 'MANTENIMIENTO' : 'NORMAL'}</h3>
-              <p>Sistema</p>
+              <p>📟 Sistema</p>
             </div>
           </div>
         </div>
 
         {/* SECCIÓN 3: ESTADÍSTICAS DEL DÍA */}
         <div className="section stats">
-          <h2>📊 Estadísticas del Día</h2>
+          <h2>📶 Estadísticas del Día</h2>
           <div className="cards-row mini">
             <div className="mini-card">🌡️ Máx: {estadisticas.max_temp}°C</div>
             <div className="mini-card">❄️ Mín: {estadisticas.min_temp}°C</div>
@@ -193,14 +264,14 @@ function App() {
             <Line data={graficaLineas} />
           </div>
           <div className="graph-box">
-            <h3>Eventos por Tipo</h3>
+            <h3>🖥 Eventos por Tipo</h3>
             <Bar data={graficaBarras} />
           </div>
         </div>
 
         {/* SECCIÓN 2.1: TABLA FILTRABLE */}
         <div className="section table-box">
-          <h3>📋 Registro de Eventos (Últimos 50)</h3>
+          <h3>📑 Registro de Eventos (Últimos 50)</h3>
           <div className="filters">
             <input placeholder="Filtrar por Tipo..." value={filtroTipo} onChange={e => setFiltroTipo(e.target.value)} />
             <input placeholder="Filtrar por Fecha (2025-12...)" value={filtroFecha} onChange={e => setFiltroFecha(e.target.value)} />
@@ -227,11 +298,11 @@ function App() {
           <button className="btn green" onClick={() => enviarComando('ABRIR')}>Abrir Puerta</button>
           <button className="btn red" onClick={() => enviarComando('CERRAR')}>Cerrar Puerta</button>
           <div className="divider"></div>
-          <button className="btn blue" onClick={() => enviarComando('FAN_ON')}>Fan ON</button>
-          <button className="btn blue" onClick={() => enviarComando('FAN_OFF')}>Fan OFF</button>
+          <button className="btn blue" onClick={() => enviarComando('FAN_ON')}>Fan ON 𒅒</button>
+          <button className="btn blue" onClick={() => enviarComando('FAN_OFF')}>Fan OFF【⏻】</button>
           <div className="divider"></div>
-          <button className="btn yellow" onClick={() => enviarComando('MANT_ON')}>Mantenimiento ON</button>
-          <button className="btn gray" onClick={() => enviarComando('MANT_OFF')}>Mantenimiento OFF</button>
+          <button className="btn yellow" onClick={() => enviarComando('MANT_ON')}>Mantenimiento ON 🛠</button>
+          <button className="btn gray" onClick={() => enviarComando('MANT_OFF')}>Mantenimiento OFF ⚡</button>
         </div>
       </div>
     </div>
